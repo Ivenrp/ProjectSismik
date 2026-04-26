@@ -1,20 +1,7 @@
-//File Sketch.ino
 // ============================================================
 // SISTEM PARKIR OTOMATIS BERBASIS ARDUINO UNO
 // Mata Kuliah  : Sistem Mikrokontroler (TK244004)
 // Universitas  : Universitas Jenderal Soedirman
-// ============================================================
-// VERSI 3.6 FINAL - Perubahan oleh: APRIYUDHA (2026-04-25)
-// Perubahan:
-//   1. LED KUNING (A0): menyala saat kendaraan terdeteksi (RFID aktif)
-//   2. LED HIJAU (D8): berkedip saat kartu VALID (indikator slot tersedia)
-//   3. LED MERAH (D3): menyala saat slot penuh / kartu invalid
-//   4. Perbaikan BUG: perbandingan UID menggunakan memcmp()
-//   5. Bunyi buzzer disesuaikan per kondisi
-//   6. Palang terbuka -> trigger <=3cm -> hitung mundur mandiri 5 detik -> palang tertutup
-//   7. Serial print "Menunggu kendaraan melewati palang..."
-//   8. Sensor LDR (A1) untuk deteksi cahaya (sensor ANALOG)
-//      → Lampu parkir otomatis menyala saat malam/gelap
 // ============================================================
 
 #include <SPI.h>
@@ -56,7 +43,7 @@ const int JUMLAH_KARTU = 3;
 
 // ── OBJEK ────────────────────────────────────────
 MFRC522 rfid(PIN_RFID_SS, PIN_RFID_RST);
-Servo servoPalang;
+Servo servoSalang;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ── VARIABEL GLOBAL ───────────────────────────────
@@ -107,8 +94,8 @@ void setup() {
   Serial.println("RFID siap.");
 
   // Servo
-  servoPalang.attach(PIN_SERVO);
-  servoPalang.write(SERVO_TUTUP);
+  servoSalang.attach(PIN_SERVO);
+  servoSalang.write(SERVO_TUTUP);
   Serial.println("Servo siap.");
 
   // LCD I2C
@@ -249,7 +236,7 @@ void loop() {
   if (slotTerisi >= KAPASITAS_SLOT) {
     // ── SLOT PENUH ──
     Serial.println("SLOT PENUH!");
-    tampilkanLCD("  SLOT PENUH!", " ");
+    tampilkanLCD("  SLOT PENUH!", "Maaf, coba lagi");
     // LED merah NYALA = slot penuh
     digitalWrite(PIN_LED_MERAH, HIGH);
     digitalWrite(PIN_LED_HIJAU, LOW);
@@ -354,7 +341,7 @@ bool cekKartuTerdaftar(byte* uid, byte ukuranUID) {
 
 // Buka palang + reset flag hitung mundur
 void bukaPalang() {
-  servoPalang.write(SERVO_BUKA);
+  servoSalang.write(SERVO_BUKA);
   palangTerbuka = true;
   kendaraanTerdeteksi = false;
   hitungMundurAktif = false;
@@ -367,7 +354,7 @@ void bukaPalang() {
 
 // Tutup palang + reset flag
 void tutupPalang() {
-  servoPalang.write(SERVO_TUTUP);
+  servoSalang.write(SERVO_TUTUP);
   palangTerbuka = false;
   hitungMundurAktif = false;
   waktuMulaiHitung = 0;
